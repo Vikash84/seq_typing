@@ -69,9 +69,9 @@ def rematch_for_different_references(fastq, references_files, threads, outdir, e
             references_results[reference] = pickleFile
         else:
             sys.exit('Something went wrong while running ReMatCh for reference {reference}'.format(reference=reference))
-        clean_rematch_folder(consensus_files, reference_file, ref_dir, doNotRemoveConsensus, debug)
-        if not debug or not doNotRemoveConsensus:
-            utils.removeDirectory(ref_dir)
+        # clean_rematch_folder(consensus_files, reference_file, ref_dir, doNotRemoveConsensus, debug)
+        # if not debug or not doNotRemoveConsensus:
+        #     utils.removeDirectory(ref_dir)
     return references_results
 
 
@@ -89,6 +89,6 @@ def run_rematch(rematch_script, outdir, references_files, fastq, threads, extraS
     autotranslate(['rematch_module', 'utils'])
     import rematch_module
 
-    references_results = rematch_for_different_references(fastq, references_files, threads, module_dir, extraSeq, minCovPresence, minCovCall, minFrequencyDominantAllele, minGeneCoverage, debug, minGeneIdentity, rematch_module, doNotRemoveConsensus, pickles_folder)
+    references_results = rematch_for_different_references(fastq, references_files, threads, module_dir, extraSeq, minCovPresence, minCovCall, minFrequencyDominantAllele, minGeneCoverage, True, minGeneIdentity, rematch_module, doNotRemoveConsensus, pickles_folder)
 
     return references_results, module_dir

@@ -224,9 +224,9 @@ def main():
         seq_type, probable_results = utils.extractVariableFromPickle(pickleFile)
         parse_results.write_reports(args.outdir, seq_type, probable_results)
 
-    if not args.notClean and not args.debug:
-        for folder in folders_2_remove:
-            utils.removeDirectory(folder)
+    # if not args.notClean and not args.debug:
+    #     for folder in folders_2_remove:
+    #         utils.removeDirectory(folder)
 
     time_taken = utils.runTime(start_time)
     del(time_taken)
