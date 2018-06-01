@@ -3,23 +3,26 @@ import os.path
 import modules.utils as utils
 
 
-def get_best_sequence(data_by_gene, minGeneCoverage):
+def get_best_sequence(data_by_gene, minGeneCoverage, min_depth_coverage):
     sequence = {}
     probable_sequences = {}
     improbable_sequences = {}
 
     for gene, rematch_results in data_by_gene.items():
-        if rematch_results['gene_coverage'] >= minGeneCoverage:
-            if rematch_results['gene_coverage'] not in sequence:
-                sequence[rematch_results['gene_coverage']] = gene
-            else:
-                if data_by_gene[sequence[rematch_results['gene_coverage']]]['gene_mean_read_coverage'] < rematch_results['gene_mean_read_coverage']:
-                    probable_sequences[sequence[rematch_results['gene_coverage']]] = (rematch_results['gene_coverage'], data_by_gene[sequence[rematch_results['gene_coverage']]]['gene_mean_read_coverage'], data_by_gene[sequence[rematch_results['gene_coverage']]]['gene_identity'])
+        if min_depth_coverage is not None and rematch_results['gene_mean_read_coverage'] < min_depth_coverage:
+            continue
+        else:
+            if rematch_results['gene_coverage'] >= minGeneCoverage:
+                if rematch_results['gene_coverage'] not in sequence:
                     sequence[rematch_results['gene_coverage']] = gene
                 else:
-                    probable_sequences[gene] = (rematch_results['gene_coverage'], rematch_results['gene_mean_read_coverage'], rematch_results['gene_identity'])
-        else:
-            improbable_sequences[rematch_results['gene_coverage']] = gene
+                    if data_by_gene[sequence[rematch_results['gene_coverage']]]['gene_mean_read_coverage'] < rematch_results['gene_mean_read_coverage']:
+                        probable_sequences[sequence[rematch_results['gene_coverage']]] = (rematch_results['gene_coverage'], data_by_gene[sequence[rematch_results['gene_coverage']]]['gene_mean_read_coverage'], data_by_gene[sequence[rematch_results['gene_coverage']]]['gene_identity'])
+                        sequence[rematch_results['gene_coverage']] = gene
+                    else:
+                        probable_sequences[gene] = (rematch_results['gene_coverage'], rematch_results['gene_mean_read_coverage'], rematch_results['gene_identity'])
+            else:
+                improbable_sequences[rematch_results['gene_coverage']] = gene
 
     if len(sequence) == 1:
         sequence = next(iter(sequence.values()))  # Get the first one
@@ -38,10 +41,11 @@ def get_best_sequence(data_by_gene, minGeneCoverage):
     return (sequence, probable_sequences, improbable_sequences)
 
 
-def get_results(references_results, minGeneCoverage, typeSeparator, references_files, references_headers):
+def get_results(references_results, minGeneCoverage, min_depth_coverage, typeSeparator, references_files,
+                references_headers):
     intermediate_results = {}
     for reference, data_by_gene in references_results.items():
-        intermediate_results[reference] = get_best_sequence(data_by_gene, minGeneCoverage)
+        intermediate_results[reference] = get_best_sequence(data_by_gene, minGeneCoverage, min_depth_coverage)
 
     results = {}
     results_info = {}
@@ -142,8 +146,11 @@ def write_reports(outdir, seq_type, seq_type_info, probable_results, improbable_
                 writer.write('\t'.join(['most_likely', reference] + list(map(str, data))) + '\n')
 
 
-def parse_results(references_results, references_files, references_headers, outdir, minGeneCoverage, typeSeparator):
+def parse_results(references_results, references_files, references_headers, outdir, minGeneCoverage, min_depth_coverage,
+                  typeSeparator):
     references_results = split_references_results_by_references(references_results, references_headers)
-    seq_type, seq_type_info, probable_results, improbable_results = get_results(references_results, minGeneCoverage, typeSeparator, references_files, references_headers)
+    seq_type, seq_type_info, probable_results, improbable_results = get_results(references_results, minGeneCoverage,
+                                                                                min_depth_coverage, typeSeparator,
+                                                                                references_files, references_headers)
     write_reports(outdir, seq_type, seq_type_info, probable_results, improbable_results)
     return seq_type, seq_type_info, probable_results, improbable_results
